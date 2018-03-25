@@ -1,13 +1,15 @@
 // Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #include "ThirdPersonColorsCharacter.h"
-#include "HeadMountedDisplayFunctionLibrary.h"
+
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AThirdPersonColorsCharacter
@@ -29,14 +31,18 @@ AThirdPersonColorsCharacter::AThirdPersonColorsCharacter()
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
-	GetCharacterMovement()->JumpZVelocity = 600.f;
-	GetCharacterMovement()->AirControl = 0.2f;
+	GetCharacterMovement()->JumpZVelocity = 500.f; // Default is 420.f
+	GetCharacterMovement()->AirControl = 0.2f; // Default is 0.05f
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character	
+	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character
+	CameraBoom->bEnableCameraLag = true;
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+// At the height of Character's eyes, just a bit to the right to better see
+//	CameraBoom->SocketOffset = FVector(0.f, 20.f, 78.f); // This would offset the socket, that is the camera, not the attachment point on the character (which is not nice when the camera get closer)
+	CameraBoom->AddLocalOffset(FVector(0.f, 20.f, 78.f)); // This offset the attachment point into the character, so that we see the head when the camera get closer
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -45,6 +51,47 @@ AThirdPersonColorsCharacter::AThirdPersonColorsCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+}
+
+// Called when an instance of this class is placed (in editor) or spawned, after all Blueprint Construction Scripts.
+void AThirdPersonColorsCharacter::OnConstruction(const FTransform & Transform)
+{
+	Super::OnConstruction(Transform);
+
+	ApplyColor();
+}
+
+void AThirdPersonColorsCharacter::ApplyColor()
+{
+	USkeletalMeshComponent* Mesh = GetMesh();
+	if (Mesh)
+	{
+		if (!MaterialInstance)
+		{
+			UMaterialInterface* Material = Mesh->GetMaterial(0);
+			if (Material)
+			{
+				MaterialInstance = UMaterialInstanceDynamic::Create(Material, this);
+			}
+		}
+		if (MaterialInstance)
+		{
+			MaterialInstance->SetVectorParameterValue(ColorParameterName, ColorValue);
+			Mesh->SetMaterial(0, MaterialInstance);
+		}
+	}
+}
+
+void AThirdPersonColorsCharacter::ChangeColor(const FLinearColor& InColorValue)
+{
+	ColorValue = InColorValue;
+	ApplyColor();
+}
+
+// Called when the game starts or when spawned
+void AThirdPersonColorsCharacter::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,25 +118,17 @@ void AThirdPersonColorsCharacter::SetupPlayerInputComponent(class UInputComponen
 	// handle touch devices
 	PlayerInputComponent->BindTouch(IE_Pressed, this, &AThirdPersonColorsCharacter::TouchStarted);
 	PlayerInputComponent->BindTouch(IE_Released, this, &AThirdPersonColorsCharacter::TouchStopped);
-
-	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AThirdPersonColorsCharacter::OnResetVR);
 }
 
-
-void AThirdPersonColorsCharacter::OnResetVR()
-{
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
 
 void AThirdPersonColorsCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
 {
-		Jump();
+	Jump();
 }
 
 void AThirdPersonColorsCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
 {
-		StopJumping();
+	StopJumping();
 }
 
 void AThirdPersonColorsCharacter::TurnAtRate(float Rate)

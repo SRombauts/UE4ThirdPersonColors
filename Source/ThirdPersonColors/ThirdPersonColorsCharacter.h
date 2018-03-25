@@ -18,8 +18,24 @@ class AThirdPersonColorsCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+
+	UPROPERTY(EditAnywhere, Category = "Effects", meta = (AllowPrivateAccess = "true"))
+	FLinearColor ColorValue = FLinearColor(1.f, 0.f, 0.f);
+
+	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
+	FName ColorParameterName = TEXT("BodyColor");
+
+	UPROPERTY(VisibleAnywhere)
+	UMaterialInstanceDynamic* MaterialInstance;
+
 public:
 	AThirdPersonColorsCharacter();
+
+	virtual void OnConstruction(const FTransform& Transform) override;
+
+	void ApplyColor();
+
+	void ChangeColor(const FLinearColor& InColorValue);
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -30,9 +46,8 @@ public:
 	float BaseLookUpRate;
 
 protected:
-
-	/** Resets HMD orientation in VR. */
-	void OnResetVR();
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);
