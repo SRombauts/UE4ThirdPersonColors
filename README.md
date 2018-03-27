@@ -4,7 +4,6 @@ Developed from the Unreal Engine 4.19 C++ Third Person Template.
 
 # TO-DO list (roughly prioritized)
 ## Priority
-- Lock camera behind the avatar
 - UI to display number of pickup collected
 - End-game (victory) when all pickup are collected
 - Parkour/Obstacles/Walls/Bridges/Labyrinths

@@ -23,13 +23,7 @@ AThirdPersonColorsCharacter::AThirdPersonColorsCharacter()
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
 
-	// Don't rotate when the controller rotates. Let that just affect the camera.
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;
-
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 500.f; // Default is 420.f
 	GetCharacterMovement()->AirControl = 0.2f; // Default is 0.05f
@@ -41,13 +35,14 @@ AThirdPersonColorsCharacter::AThirdPersonColorsCharacter()
 	CameraBoom->bEnableCameraLag = true;
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 // At the height of Character's eyes, just a bit to the right to better see
-//	CameraBoom->SocketOffset = FVector(0.f, 20.f, 78.f); // This would offset the socket, that is the camera, not the attachment point on the character (which is not nice when the camera get closer)
-	CameraBoom->AddLocalOffset(FVector(0.f, 20.f, 78.f)); // This offset the attachment point into the character, so that we see the head when the camera get closer
+//	CameraBoom->SocketOffset = FVector(0.f, 20.f, 118.f); // This would offset the socket, that is the camera, not the attachment point on the character (which is not nice when the camera get closer)
+	CameraBoom->AddLocalOffset(FVector(0.f, 20.f, 118.f)); // This offset the attachment point into the character, so that we see the head when the camera get closer
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	FollowCamera->RelativeRotation = FRotator(-15.f, 0.f, 0.f);
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -101,8 +96,7 @@ void AThirdPersonColorsCharacter::SetupPlayerInputComponent(class UInputComponen
 {
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AThirdPersonColorsCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AThirdPersonColorsCharacter::MoveRight);
@@ -115,20 +109,18 @@ void AThirdPersonColorsCharacter::SetupPlayerInputComponent(class UInputComponen
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AThirdPersonColorsCharacter::LookUpAtRate);
 
-	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &AThirdPersonColorsCharacter::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &AThirdPersonColorsCharacter::TouchStopped);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 }
 
-
-void AThirdPersonColorsCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
+void AThirdPersonColorsCharacter::MoveForward(float Value)
 {
-	Jump();
+	AddMovementInput(GetActorForwardVector() * Value);
 }
 
-void AThirdPersonColorsCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
+void AThirdPersonColorsCharacter::MoveRight(float Value)
 {
-	StopJumping();
+	AddMovementInput(GetActorRightVector() * Value);
 }
 
 void AThirdPersonColorsCharacter::TurnAtRate(float Rate)
@@ -141,33 +133,4 @@ void AThirdPersonColorsCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
-}
-
-void AThirdPersonColorsCharacter::MoveForward(float Value)
-{
-	if ((Controller != NULL) && (Value != 0.0f))
-	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		// get forward vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(Direction, Value);
-	}
-}
-
-void AThirdPersonColorsCharacter::MoveRight(float Value)
-{
-	if ( (Controller != NULL) && (Value != 0.0f) )
-	{
-		// find out which way is right
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-	
-		// get right vector 
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		// add movement in that direction
-		AddMovementInput(Direction, Value);
-	}
 }
