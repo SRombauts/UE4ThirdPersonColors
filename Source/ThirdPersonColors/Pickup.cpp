@@ -67,24 +67,34 @@ void APickup::BeginPlay()
 
 void APickup::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (Role == ENetRole::ROLE_Authority)
+	AThirdPersonColorsCharacter* Character = Cast<AThirdPersonColorsCharacter>(OtherActor);
+	if (Character)
 	{
-		AThirdPersonColorsCharacter* Character = Cast<AThirdPersonColorsCharacter>(OtherActor);
-		if (Character)
+		if (Role == ENetRole::ROLE_Authority)
 		{
-			// Change body color
-			Character->ChangeColor(ColorValue);
+			Character->CollectOnePickup();
 
 			Destroy();
-		}
-	}
 
-	PlayEffects();
+			// Count remaining pickups
+			TArray<AActor*> RemainingPickups;
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), APickup::StaticClass(), RemainingPickups);
+			if (0 == RemainingPickups.Num())
+			{
+				Character->CompleteMission();
+			}
+		}
+
+		// Change body color
+		Character->ChangeColor(ColorValue);
+
+		PlayEffects(Character->GetActorLocation());
+	}
 }
 
-void APickup::PlayEffects()
+void APickup::PlayEffects(const FVector& Location)
 {
-	UGameplayStatics::SpawnEmitterAtLocation(this, PickupFX, GetActorLocation());
+	UGameplayStatics::SpawnEmitterAtLocation(this, PickupFX, Location);
 	UGameplayStatics::PlaySound2D(GetWorld(), PickupSound);
 }
 

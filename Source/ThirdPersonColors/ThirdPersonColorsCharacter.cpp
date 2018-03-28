@@ -1,4 +1,4 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 2018 Sebastien Rombauts (sebastien.rombauts@gmail.com)
 
 #include "ThirdPersonColorsCharacter.h"
 
@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -25,7 +26,7 @@ AThirdPersonColorsCharacter::AThirdPersonColorsCharacter()
 
 	// Configure character movement
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
-	GetCharacterMovement()->JumpZVelocity = 500.f; // Default is 420.f
+	GetCharacterMovement()->JumpZVelocity = 540.f; // Default is 420.f
 	GetCharacterMovement()->AirControl = 0.2f; // Default is 0.05f
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
@@ -81,6 +82,24 @@ void AThirdPersonColorsCharacter::ChangeColor(const FLinearColor& InColorValue)
 {
 	ColorValue = InColorValue;
 	ApplyColor();
+}
+
+void AThirdPersonColorsCharacter::CollectOnePickup()
+{
+	PickupCount++;
+
+	// Call Blueprint Implementation
+	OnPickupCollected();
+}
+
+void AThirdPersonColorsCharacter::CompleteMission()
+{
+	DisableInput(nullptr);
+
+	UGameplayStatics::PlaySound2D(GetWorld(), MissionCompleteSound);
+
+	// Call Blueprint Implementation
+	OnMissionCompleted();
 }
 
 // Called when the game starts or when spawned
