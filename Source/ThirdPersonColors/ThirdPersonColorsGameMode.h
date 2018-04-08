@@ -14,6 +14,8 @@ class AThirdPersonColorsGameMode : public AGameModeBase
 public:
 	AThirdPersonColorsGameMode();
 
+	void CompleteMission();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

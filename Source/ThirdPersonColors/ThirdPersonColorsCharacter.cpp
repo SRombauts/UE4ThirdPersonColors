@@ -8,6 +8,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
+#include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -47,6 +48,8 @@ AThirdPersonColorsCharacter::AThirdPersonColorsCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+
+	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 }
 
 // Called when an instance of this class is placed (in editor) or spawned, after all Blueprint Construction Scripts.
@@ -130,6 +133,9 @@ void AThirdPersonColorsCharacter::SetupPlayerInputComponent(class UInputComponen
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
+	PlayerInputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &AThirdPersonColorsCharacter::BeginCrouch);
+	PlayerInputComponent->BindAction("Crouch", EInputEvent::IE_Released, this, &AThirdPersonColorsCharacter::EndCrouch);
 }
 
 void AThirdPersonColorsCharacter::MoveForward(float Value)
@@ -140,6 +146,16 @@ void AThirdPersonColorsCharacter::MoveForward(float Value)
 void AThirdPersonColorsCharacter::MoveRight(float Value)
 {
 	AddMovementInput(GetActorRightVector() * Value);
+}
+
+void AThirdPersonColorsCharacter::BeginCrouch()
+{
+	Crouch();
+}
+
+void AThirdPersonColorsCharacter::EndCrouch()
+{
+	UnCrouch();
 }
 
 void AThirdPersonColorsCharacter::TurnAtRate(float Rate)

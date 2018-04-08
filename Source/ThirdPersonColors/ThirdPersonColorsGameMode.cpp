@@ -15,6 +15,10 @@ AThirdPersonColorsGameMode::AThirdPersonColorsGameMode()
 	}
 }
 
+void AThirdPersonColorsGameMode::CompleteMission()
+{
+}
+
 // Called when the game starts or when spawned
 void AThirdPersonColorsGameMode::BeginPlay()
 {

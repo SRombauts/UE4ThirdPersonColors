@@ -3,6 +3,7 @@
 #include "Pickup.h"
 
 #include "ThirdPersonColorsCharacter.h"
+#include "ThirdPersonColorsGameMode.h"
 
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -81,7 +82,14 @@ void APickup::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, 
 			UGameplayStatics::GetAllActorsOfClass(GetWorld(), APickup::StaticClass(), RemainingPickups);
 			if (0 == RemainingPickups.Num())
 			{
+				// TODO: single-player shortcut for GameMode -Multicast-> GameState -> Character
 				Character->CompleteMission();
+
+				AThirdPersonColorsGameMode* GameMode = Cast<AThirdPersonColorsGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+				if (GameMode)
+				{
+					GameMode->CompleteMission();
+				}
 			}
 		}
 
