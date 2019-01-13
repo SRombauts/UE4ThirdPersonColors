@@ -27,6 +27,7 @@ AThirdPersonColorsCharacter::AThirdPersonColorsCharacter()
 
 	// Configure character movement
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
+	GetCharacterMovement()->MaxWalkSpeed = 400.f; // Default is 600.f
 	GetCharacterMovement()->JumpZVelocity = 540.f; // Default is 420.f
 	GetCharacterMovement()->AirControl = 0.2f; // Default is 0.05f
 
@@ -136,6 +137,9 @@ void AThirdPersonColorsCharacter::SetupPlayerInputComponent(class UInputComponen
 
 	PlayerInputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &AThirdPersonColorsCharacter::BeginCrouch);
 	PlayerInputComponent->BindAction("Crouch", EInputEvent::IE_Released, this, &AThirdPersonColorsCharacter::EndCrouch);
+
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AThirdPersonColorsCharacter::StartSprinting);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AThirdPersonColorsCharacter::StopSprinting);
 }
 
 void AThirdPersonColorsCharacter::MoveForward(float Value)
@@ -156,6 +160,16 @@ void AThirdPersonColorsCharacter::BeginCrouch()
 void AThirdPersonColorsCharacter::EndCrouch()
 {
 	UnCrouch();
+}
+
+void AThirdPersonColorsCharacter::StartSprinting()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 800.f;
+}
+
+void AThirdPersonColorsCharacter::StopSprinting()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 }
 
 void AThirdPersonColorsCharacter::TurnAtRate(float Rate)
