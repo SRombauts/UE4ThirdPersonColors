@@ -1,6 +1,8 @@
 # ThirdPersonColors
 
-Developed from the Unreal Engine 4.19 C++ Third Person Template.
+Game prototype for my kids, developed from the Unreal Engine 4.19 C++ Third Person Template.
+
+![Game prototype screenshot](UE4ThirdPersonColors.png)
 
 # TO-DO list (roughly prioritized)
 ## Priority
@@ -34,4 +36,3 @@ Developed from the Unreal Engine 4.19 C++ Third Person Template.
 
 ## Release
 - 
-- Add a screenshot to advertise the game on Github
