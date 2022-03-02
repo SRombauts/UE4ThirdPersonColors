@@ -7,6 +7,8 @@ public class ThirdPersonColorsTarget : TargetRules
 {
 	public ThirdPersonColorsTarget(TargetInfo Target) : base(Target)
 	{
+		DefaultBuildSettings = BuildSettingsVersion.V2;
+
 		Type = TargetType.Game;
 		ExtraModuleNames.Add("ThirdPersonColors");
 	}

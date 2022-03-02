@@ -45,7 +45,7 @@ AThirdPersonColorsCharacter::AThirdPersonColorsCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
-	FollowCamera->RelativeRotation = FRotator(-15.f, 0.f, 0.f);
+	FollowCamera->SetRelativeRotation(FRotator(-15.f, 0.f, 0.f));
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -63,12 +63,12 @@ void AThirdPersonColorsCharacter::OnConstruction(const FTransform & Transform)
 
 void AThirdPersonColorsCharacter::ApplyColor()
 {
-	USkeletalMeshComponent* Mesh = GetMesh();
-	if (Mesh)
+	USkeletalMeshComponent* SkeletalMesh = GetMesh();
+	if (SkeletalMesh)
 	{
 		if (!MaterialInstance)
 		{
-			UMaterialInterface* Material = Mesh->GetMaterial(0);
+			UMaterialInterface* Material = SkeletalMesh->GetMaterial(0);
 			if (Material)
 			{
 				MaterialInstance = UMaterialInstanceDynamic::Create(Material, this);
@@ -77,7 +77,7 @@ void AThirdPersonColorsCharacter::ApplyColor()
 		if (MaterialInstance)
 		{
 			MaterialInstance->SetVectorParameterValue(ColorParameterName, ColorValue);
-			Mesh->SetMaterial(0, MaterialInstance);
+			SkeletalMesh->SetMaterial(0, MaterialInstance);
 		}
 	}
 }

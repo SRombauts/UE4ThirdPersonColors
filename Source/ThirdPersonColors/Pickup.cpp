@@ -71,7 +71,7 @@ void APickup::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, 
 	AThirdPersonColorsCharacter* Character = Cast<AThirdPersonColorsCharacter>(OtherActor);
 	if (Character)
 	{
-		if (Role == ENetRole::ROLE_Authority)
+		if (GetLocalRole() == ENetRole::ROLE_Authority)
 		{
 			Character->CollectOnePickup();
 
